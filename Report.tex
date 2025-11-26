@@ -1,0 +1,146 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{wacv}
+\usepackage{times}
+\usepackage{color}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+% \usepackage{hyper}
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[pagebackref=true,breaklinks=true,colorlinks,bookmarks=false]{hyperref}
+
+\wacvfinalcopy % *** Uncomment this line for the final submission
+
+\def\wacvPaperID{961} % *** Enter the wacv Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\ifwacvfinal\pagestyle{empty}\fi
+\setcounter{page}{1}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Lung Segmentation Using U-Net: A Comparative Study on CT Images}
+
+% Authors at the same institution
+\author{Jainam Bhansali  \\
+Yeshiva University\\
+{\tt\small jbhansal@mail.yu.edu}
+}
+% Authors at different institutions
+
+\maketitle
+\ifwacvfinal\thispagestyle{empty}\fi
+
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+
+Lung segmentation is a crucial step in the computer-aided diagnosis of pulmonary diseases. This study presents an improved deep learning approach for segmenting lung regions from Computed Tomography (CT) images. By leveraging a Residual U-Net architecture and a combined Dice-Binary Cross Entropy (BCE) loss function, we address the challenges of boundary delineation and class imbalance. Our method achieves an Intersection over Union (IoU) score of 0.854 and an accuracy of 94.91\% on the testing set, demonstrating significant effectiveness in automated lung segmentation.
+
+\end{abstract}
+
+
+
+%%%%%%%%% BODY TEXT
+\section{Introduction}
+
+Lung segmentation is a crucial task in medical image analysis, which involves separating the lung region from the surrounding tissues in CT images. The accurate segmentation of lung regions is a prerequisite for the quantitative analysis of lung volumes and the detection of abnormalities such as nodules, tumors, and infections. Manual segmentation is time-consuming and prone to inter-observer variability. Deep learning, particularly Convolutional Neural Networks (CNNs), has revolutionized medical image analysis. The U-Net architecture, with its encoder-decoder structure and skip connections, has become the standard for biomedical image segmentation. In this paper, we propose an enhanced U-Net model incorporating residual blocks and advanced data augmentation to further improve segmentation performance.
+
+This study is particularly relevant in the context of pulmonary diseases, where there is an urgent need for efficient tools to assess diagnosis. Semantically segmenting CT scan images is a crucial goal because it would not only assist in disease diagnosis but also help in quantifying the severity of the illness, and hence, prioritize the population treatment accordingly.
+
+\section{Related Work}\label{sec:related}
+Lung segmentation is a critical step in medical applications such as computer-aided diagnosis, treatment planning, and image-guided interventions. It enables clinicians to analyze lung abnormalities, quantify lung volumes, and track disease progression accurately.
+
+The U-Net architecture was introduced by Ronneberger et al. \cite{ronneberger2015u} for biomedical image segmentation, demonstrating state-of-the-art performance with limited training data. Since then, numerous variants have been proposed to address specific challenges in medical imaging.
+
+Zhou et al. \cite{zhou2018unet++} proposed U-Net++, a nested U-Net architecture with dense skip connections, which reduces the semantic gap between the encoder and decoder feature maps. This modification has shown improvements in segmenting lesions with varying sizes.
+
+Oktay et al. \cite{oktay2018attention} introduced Attention U-Net, which integrates attention gates into the skip connections. These gates learn to suppress irrelevant regions in the input image while highlighting salient features useful for the specific task, thereby improving model sensitivity.
+
+For volumetric data, Cicek et al. \cite{cicek20163d} extended the U-Net to 3D U-Net, allowing for the processing of 3D volumes directly. This is particularly useful for CT and MRI scans where spatial context in the third dimension is critical.
+
+In the context of lung segmentation, various approaches have been explored. Khanna et al. \cite{khanna2020deep} utilized a Residual U-Net, replacing standard convolutional blocks with residual blocks to facilitate the training of deeper networks and prevent the vanishing gradient problem.
+
+Furthermore, recent works have focused on robust loss functions. The use of Dice Loss, often in combination with Cross-Entropy Loss, has become standard practice to directly optimize the overlap between predicted and ground truth masks, as demonstrated in \cite{milletari2016v}.
+
+\section{Methods}\label{sec:method}
+\begin{enumerate}
+    \item \textbf{Data Preparation}: The dataset consists of lung CT images and their corresponding binary masks. The data was obtained from the Lung Segmentation dataset provided by Zhang. The dataset contains 2D axial slices of CT scans, where the lung regions are annotated as foreground (white) and the background as black.
+    
+    \item \textbf{Data Augmentation}: To ensure robustness and prevent overfitting, we applied extensive data augmentation using the Albumentations library. The preprocessing pipeline includes resizing all images and masks to 256x256 pixels and normalizing them. We employed random rotations (limit 35 degrees), horizontal flips (p=0.5), and vertical flips (p=0.1). These augmentations simulate variations in patient positioning and scanner orientation.
+    
+    \item \textbf{Model Architecture}: We implemented a Residual U-Net (ResUNet), which combines the strengths of the U-Net architecture with Residual Learning.
+    \begin{itemize}
+        \item \textbf{Encoder}: The contracting path consists of four residual blocks. Each block contains two 3x3 convolutions with Batch Normalization and ReLU activation, along with a shortcut connection. Max pooling is used for downsampling.
+        \item \textbf{Decoder}: The expansive path uses transpose convolutions for upsampling, followed by concatenation with the corresponding feature maps from the encoder (skip connections) and a residual block.
+        \item \textbf{Bottleneck}: A residual block connects the encoder and decoder at the lowest resolution.
+        \item \textbf{Output}: A 1x1 convolution maps the features to the desired number of classes (1 for binary segmentation), followed by a Sigmoid activation function.
+    \end{itemize}
+  
+    \item \textbf{Loss Function}: To handle the class imbalance between the lung and background regions, we utilized a combined loss function: $Loss = L_{BCE} + L_{Dice}$, where $L_{BCE}$ is the Binary Cross-Entropy loss and $L_{Dice}$ is the Dice Loss. This combination ensures pixel-wise accuracy while maximizing the intersection over union.
+    
+    \item \textbf{Training}: The model was implemented using PyTorch. We used the Adam optimizer with a learning rate of 1e-4. The training was conducted for 20 epochs with a batch size of 8. We utilized Metal Performance Shaders (MPS) acceleration on macOS for efficient training.
+    
+    \item \textbf{Evaluation}: A separate test dataset is loaded using the same custom dataset class. Model predictions are compared with ground truth masks to calculate accuracy, Dice Score, and IoU.
+
+\end{enumerate}
+
+\section{Results}\label{sec:results}
+
+The model was evaluated on the test set using the Intersection over Union (IoU) and Dice Similarity Coefficient metrics.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|l|c|}
+\hline
+Metric & Score \\
+\hline\hline
+IoU & 0.854 \\
+Dice Score & 0.921 \\
+Accuracy & 94.91\% \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Performance Metrics on Test Set}
+\end{table}
+
+The Residual U-Net with the combined loss function achieves high segmentation accuracy. The model successfully delineates the lung boundaries, and also, as multi-class segments are not present, it focuses solely on the binary lung-vs-background task. The high IoU score of 0.854 exceeds our target threshold of 0.85, validating the effectiveness of the proposed improvements.
+
+\section{Discussion}\label{sec:dis}
+
+The Residual U-Net architecture is effective in segmenting lungs with high accuracy. The use of residual blocks allows for deeper networks without degradation, and the combined Dice-BCE loss function effectively handles the class imbalance inherent in segmentation tasks. The model has also demonstrated its potential for real-world applications by generalizing well to unseen data.
+
+However, there are some limitations to the model. For instance, the model's performance can be further improved by incorporating larger and more diverse datasets. Additionally, the model may not generalize well to images with significant pathology or variations in image quality not seen in the training set.
+
+Overall, the Residual U-Net architecture is a promising approach for lung segmentation, but it is important to consider its limitations when applying it to real-world problems.
+
+\section{Future Work}\label{Future Work}
+
+To build upon the current results and improve the model's performance, several future directions can be explored:
+
+\begin{itemize}
+    \item \textbf{3D Segmentation}: Extending the model to 3D U-Net to leverage volumetric information from CT scans.
+    \item \textbf{Attention Mechanisms}: Integrating Attention Gates to focus the model on relevant lung regions and suppress background noise.
+    \item \textbf{Transfer Learning}: Utilizing pre-trained models on large datasets can leverage pre-existing knowledge and potentially improve the model's performance with less training data.
+\end{itemize}
+
+\section{Conclusion}\label{sec:conclusion}
+
+This report presented the development and evaluation of an improved lung segmentation pipeline using a Residual U-Net. By integrating residual learning, robust data augmentation, and a hybrid loss function, we achieved an IoU score of 0.854 and an accuracy of 94.91\% on the testing set.
+
+The results of this project suggest that the Residual U-Net is a powerful tool for lung segmentation. With further optimization and development, it has the potential to become a valuable tool for medical image analysis applications, contributing to improved diagnosis, treatment planning, and patient care.
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{references}
+}
+
+\end{document}

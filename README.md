@@ -1,6 +1,6 @@
-# Improved Lung Segmentation using Residual U-Net
+# Lung Segmentation using Residual U-Net
 
-This project implements an improved deep learning pipeline for Lung Segmentation from CT images. It builds upon the standard U-Net architecture by incorporating Residual Blocks, advanced data augmentation, and a combined Dice-BCE loss function to achieve higher Intersection over Union (IoU) scores.
+This project implements a deep learning pipeline for Lung Segmentation from CT images. It builds upon the standard U-Net architecture by incorporating Residual Blocks, advanced data augmentation, and a combined Dice-BCE loss function to achieve higher Intersection over Union (IoU) scores.
 
 ## Key Improvements
 
@@ -24,9 +24,9 @@ This project implements an improved deep learning pipeline for Lung Segmentation
 
 ## Project Structure
 
--   `improved_lung_segmentation.py`: The main script containing the configuration, dataset, model, training loop, and evaluation logic.
+-   `lung_segmentation.py`: The main script containing the configuration, dataset, model, training loop, and evaluation logic.
 -   `requirements.txt`: List of Python dependencies.
--   `Lung segmentation.ipynb`: Original reference notebook (for comparison).
+-   `Lung_Segmentation.ipynb`: Jupyter Notebook with training visualization.
 
 ## Installation
 
@@ -41,17 +41,18 @@ This project implements an improved deep learning pipeline for Lung Segmentation
 1.  **Prepare Data**:
     -   Ensure your lung CT images and masks are organized in the following structure:
         ```
-        data/
-        ├── train_images/
-        ├── train_masks/
-        ├── val_images/
-        └── val_masks/
+        Train/
+        ├── Images/
+        ├── Masks/
+        Test/
+        ├── Images/
+        └── Masks/
         ```
-    -   Update the paths in the `Config` class in `improved_lung_segmentation.py` if your data is located elsewhere.
+    -   Update the paths in the `Config` class in `lung_segmentation.py` if your data is located elsewhere.
 
 2.  **Run Training**:
     ```bash
-    python improved_lung_segmentation.py
+    python lung_segmentation.py
     ```
 
 3.  **Output**:
